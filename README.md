@@ -1,9 +1,12 @@
 # voyeur 
 
+# WORK PACKAGE 0 - R interface
+
+- create `volcano.view` style interface with R
+
 # WORK PACKAGE 1 - DSL
 
 - implement where cause `w age > 30` 
-- complete variables
 
 # WORK PACKAGE 2 - API
 
@@ -21,6 +24,7 @@ The resulting JSON will be used to populate the sidebar similarly to `trireme`.
 
 # WORK PACKAGE 4 - diff view to compare datasets [maybe]
 # WORK PACKAGE 5 - add plotting / summary tables
+
 - histograms if selected variable is continous (add values of median / min / max),
   toggle log swich
 - ggdist style histograms with categories on y axis

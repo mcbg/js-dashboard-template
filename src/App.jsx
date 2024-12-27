@@ -9,9 +9,13 @@ function App() {
   
   const variableRefs = useRef({})
   const commandRef = useRef(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [commandInput, setCommandInput] = useState('')
   const [focusedVariable, setFocusedVariable] = useState('')
   const [selectedVariables, setSelectedVariables] = useState([])
+
+  // derived from state
+  const tokens = commandInput.split(/\s+/)
+  const N = tokens.length
 
   const fillerVariables = {
     age1: 30,
@@ -78,12 +82,20 @@ function App() {
     {'name': 'bryan', 'age': 40, ...fillerVariables},
     {'name': 'jim', 'age': 43, ...fillerVariables}
   ]
+
+  // dont search if on going command
+  const bypassFilter = commandInput.substring(0, 2) == 'g ' ||
+    commandInput.substring(0, 2) == 's ' ||
+    commandInput.length == 1 
+  
   // data that will be shown to user
-  const dataView = testData.filter(x => {
+  const dataView = bypassFilter ?
+    testData :
+    testData.filter(x => {
     const combinedText = Object.values(x)
       .join(' ')
       .toLowerCase()
-    return combinedText.includes(searchInput.toLowerCase())
+    return combinedText.includes(commandInput.toLowerCase())
   })
   const allVariables = Object.keys(testData[1])
   const shownVariables = selectedVariables.length === 0 ?
@@ -139,15 +151,23 @@ function App() {
       }
     </tr>)
 
+  const unfinishedVariable = tokens.at(-1)
+  const suggestedVariables = allVariables
+              .filter(x => unfinishedVariable.length > 1 &&
+                x.includes(unfinishedVariable))
+  const Suggestions = () =>
+        <p>
+          {
+            suggestedVariables
+              .map(x => <span>{x}&nbsp;&nbsp;&nbsp;</span>)
+          }
+        </p>
+
   // HANDLERS ------------------------------------------------------------
   const submitCommand = () => {
-    const tokens = searchInput.split(' ')
-    const N = tokens.length
-
     // goto 
     if (N === 2 && tokens[0] === 'g') {
       const gotoVariable = tokens[1]
-      console.log(gotoVariable)
       if (gotoVariable === '.first') {
         focusVariable(shownVariables[0])
       }
@@ -157,11 +177,16 @@ function App() {
       else {
         focusVariable(tokens[1])
       }
-      setSearchInput('')
+      setCommandInput('')
+    }
+
+    // clear
+    else if (N === 1 && tokens[0] === 'c') {
+      setCommandInput('')
     }
 
     // select
-    if (N >= 2 && tokens[0] === 's') {
+    else if (N >= 2 && tokens[0] === 's') {
       const commandVariables = tokens.slice(1)
       if (commandVariables.includes('*')) {
         setSelectedVariables(allVariables)
@@ -169,11 +194,11 @@ function App() {
       else {
         setSelectedVariables(commandVariables)
       }
-      setSearchInput('')
+      setCommandInput('')
     }
 
     // select-and 
-    if (tokens[0] === 'sa' && N >= 2) {
+    else if (tokens[0] === 'sa' && N >= 2) {
       const commandVariables = tokens.slice(1)
       if (commandVariables.includes('*')) {
         setSelectedVariables(allVariables)
@@ -182,8 +207,9 @@ function App() {
         const newSelection = shownVariables.concat(commandVariables)
         setSelectedVariables(newSelection)
       }
-      setSearchInput('')
+      setCommandInput('')
     }
+
   }
 
   const handleSearchKeyDown = (e) => {
@@ -191,14 +217,23 @@ function App() {
       e.preventDefault()
       submitCommand()
     }
+    // auto complete
+    else if (e.key === 'Tab') {
+      e.preventDefault()
+
+      // replace unfinished variable with suggestion
+      const newCommand = tokens.slice(0, -1)
+        .concat(suggestedVariables[0])
+        .join(' ')
+      setCommandInput(newCommand + ' ')
+    }
   }
 
   const handleSearchChange = (e) => {
-    setSearchInput(e.target.value)
+    setCommandInput(e.target.value)
   }
 
   const focusVariable = (variableName) => {
-    console.log('focus ' + variableName)
     variableRefs.current[variableName].focus()
     setFocusedVariable(variableName)
     commandRef.current.focus()
@@ -207,13 +242,17 @@ function App() {
   return (
     <>
       <div className = 'appContainer'>
+        <Suggestions />
         <span style = {searchBarContainerStyle}>
           <span>&gt;</span>
-          <input style={inputStyle} placeholder={searchInput} value={searchInput} 
-            autoFocus
+          <input 
+            style={inputStyle}
+            placeholder="search"
+            value={commandInput} 
             ref={commandRef}
             onChange={handleSearchChange}
-            onKeyDown={handleSearchKeyDown}/>
+            onKeyDown={handleSearchKeyDown}
+            autoFocus/>
         </span>
         <p>{dataView.length}/{testData.length} matches</p>
         <div className='overflow'>
