@@ -21,7 +21,7 @@ The resulting JSON will be used to populate the sidebar similarly to `trireme`.
 
 - .colour variable decides row colour
 - .API variable decides content of sidebar when row is clicked
-
+- 
 # WORK PACKAGE 4 - diff view to compare datasets [maybe]
 # WORK PACKAGE 5 - add plotting / summary tables
 
@@ -32,3 +32,4 @@ The resulting JSON will be used to populate the sidebar similarly to `trireme`.
 
 # NICE TO HAVE
 - regex matching variables
+- right click a cell and select option to select values where variable == 'value'
